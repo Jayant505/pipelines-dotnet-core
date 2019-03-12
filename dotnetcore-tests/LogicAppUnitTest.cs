@@ -5,45 +5,21 @@ using dotnetcore_sample.Controllers;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Collections.Generic;
+using System.Text;
 
 namespace dotnetcore_tests
 {
     [TestClass]
-    public class UnitTest1
+    public class LogicAppUnitTest
     {
         [TestMethod]
-        public void About()
-        {
-          // Arrange
-          HomeController controller = new HomeController();
-
-          // Act
-          ViewResult result = controller.About() as ViewResult;
-
-          // Assert
-          Assert.AreEqual("Your application description page.", result.ViewData["Message"]);
-        }
-
-        [TestMethod]
-        public void Contact()
-        {
-          // Arrange
-          HomeController controller = new HomeController();
-
-          // Act
-          ViewResult result = controller.Contact() as ViewResult;
-
-          // Assert
-          Assert.AreEqual("Your contact page.", result.ViewData["Message"]);
-        }
-
-        [TestMethod]
-        public void APITest()
+        public void APITest1()
         {
             String resultContent = String.Empty;
             using (var client = new HttpClient())
             {
-                client.BaseAddress = new Uri("https://login.microsoftonline.com/");
+            
+                client.BaseAddress = new Uri("https://prod-12.eastasia.logic.azure.com:443/");
                 client.DefaultRequestHeaders.Accept.Add
                                 (
                                    new MediaTypeWithQualityHeaderValue("application/json")
@@ -61,17 +37,18 @@ namespace dotnetcore_tests
 
 
                 //my account
-                var content = new FormUrlEncodedContent(new[]
-                {
-                  new KeyValuePair<string, string>("grant_type", "client_credentials"),
-                  new KeyValuePair<string, string>("client_id", "a314e658-f6d8-4af8-8afd-e4cf09ad2edb"),
-                  new KeyValuePair<string, string>("client_secret", "qZY6oqvHCW5p0QhjjlU0LyxoFx6PPo6yXsVzOoU0W0o="),
-                  new KeyValuePair<string, string>("resource", "2adcb359-2123-4716-9580-8dea6524f975")
-
-                   });
+                //var content = new FormUrlEncodedContent(new[]
+                //{
+                //   new KeyValuePair<string, string>("name", "Tom"),
+                //    new KeyValuePair<string, string>("address", "Tom"),
+                //     new KeyValuePair<string, string>("title", "Tom"),
+                //});
+                string jsonString = "{ \"name\" : \"Tom\", \"address\" : \"Tom\" , \"title\" : \"Tom\" }";
+                var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
                 //var result = await client.PostAsync()
-                var postTokenTask = client.PostAsync("/5c7d0b28-bdf8-410c-aa93-4df372b16203/oauth2/token", content);
+                var postTokenTask = client.PostAsync("/workflows/73a53d06ff174e68ac9af6b86064e56f/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=hGnPGgTu4Wn9CfXafGGtGzBhnidY8zd73v5-TA8aYEo", content);
+                //var postTokenTask = client.GetAsync("/workflows/73a53d06ff174e68ac9af6b86064e56f/triggers/manual/paths/invoke/customers/Tom?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=hGnPGgTu4Wn9CfXafGGtGzBhnidY8zd73v5-TA8aYEo");
                 postTokenTask.Wait();
 
                 var readStringTask = postTokenTask.Result.Content.ReadAsStringAsync();
@@ -81,6 +58,8 @@ namespace dotnetcore_tests
 
                 //Assert.AreEqual("Your contact page.", );
                 Assert.IsNotNull(resultContent);
+                Assert.AreEqual("Hi Tom", resultContent);
+               
 
             }
          
